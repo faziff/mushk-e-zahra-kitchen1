@@ -138,7 +138,22 @@ The repository includes `netlify.toml` and `public/_redirects` configured for Ne
    - **Publish directory**: `dist`
 3. **Environment Variables** (in Netlify Site Settings > Environment Variables):
    - `OWNER_WHATSAPP_NUMBER`: `+923210009239`
-   - `ADMIN_PASSWORD`: `admin123` (or your preferred password)
+   - `ADMIN_PASSWORD`: set a long, unique password in the hosting panel
    - `WHATSAPP_PROVIDER`: `cloudapi` | `twilio` | `callmebot`
    - `CALLMEBOT_APIKEY` or `WHATSAPP_TOKEN` / `WHATSAPP_PHONE_NUMBER_ID`
 4. **Deploy**: Trigger deployment. Netlify will build the production assets into `dist/` and route all SPA traffic seamlessly without 404s.
+
+
+## 🚀 Deploying to Hostinger Node.js Web App Hosting
+
+This repository uses the Express server as the production entry point and serves the Vite build from `dist/`.
+
+1. Import the repository's `main` branch in Hostinger's Node.js Web App hosting.
+2. Select **Node.js 22** (the project engine requires `>=22.12.0 <23`).
+3. Use build command `npm run build` and start command `npm start`. If Hostinger asks for an entry file, use `server.ts`; the start script runs it through `tsx`. Set the output directory to `dist` if shown.
+4. Add the environment variables listed in `.env.example` to Hostinger's Environment Variables panel. `ADMIN_PASSWORD` is required in production. Add WhatsApp provider credentials only for the provider you select.
+5. Redeploy after setting environment variables. The server listens on Hostinger's `PORT` and binds to `0.0.0.0`.
+
+### Database persistence note
+
+The app's current database is a local JSON file at `data/db.json`. The app can initialize the menu from defaults if that file is absent, but the JSON file is not a durable production database. Hostinger deploys versioned releases and deployment files can be replaced on redeploy, so **do not rely on this JSON file to retain orders or menu edits across deployments**. Before accepting real customer orders, move the database layer to a persistent database such as Hostinger MySQL (or another managed database) and back up any existing orders. The local JSON database is ignored by Git because it may contain customer data.

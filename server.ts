@@ -5,6 +5,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
+import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { db } from './server/db.ts';
 import { sendOrderWhatsAppNotification } from './server/whatsapp.ts';
@@ -14,7 +15,10 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD?.trim() || '';
+const MINIMUM_ORDER_AMOUNT = Number(
+  process.env.MINIMUM_ORDER_AMOUNT ?? process.env.VITE_MINIMUM_ORDER_AMOUNT ?? 0,
+);
 
 // Basic security & parsing
 app.use(
@@ -99,7 +103,7 @@ app.get('/api/config', (_req, res) => {
   res.json({
     brandName: 'Mushk e Zahra Kitchen',
     tagline: 'Good food, happy hearts',
-    minimumOrderAmount: Number(process.env.VITE_MINIMUM_ORDER_AMOUNT || 0),
+    minimumOrderAmount: MINIMUM_ORDER_AMOUNT,
     whatsappProvider: process.env.WHATSAPP_PROVIDER || 'callmebot',
     offerEnabled: process.env.OFFER_ENABLED !== 'false',
     offerText: process.env.OFFER_TEXT || 'Festive Special: Free Fresh Fries box on orders above Rs. 1,500',
@@ -151,7 +155,7 @@ app.post('/api/orders', orderRateLimiter, async (req, res) => {
     }
 
     // Minimum order check (if configured)
-    const minOrder = Number(process.env.VITE_MINIMUM_ORDER_AMOUNT || 0);
+    const minOrder = MINIMUM_ORDER_AMOUNT;
 
     const { order, error } = db.createOrder({
       name,
@@ -214,7 +218,7 @@ app.post('/api/orders', orderRateLimiter, async (req, res) => {
 // Admin verify password
 app.post('/api/admin/verify', (req, res) => {
   const { password } = req.body;
-  if (password === ADMIN_PASSWORD) {
+  if (ADMIN_PASSWORD && password === ADMIN_PASSWORD) {
     res.json({ valid: true });
   } else {
     res.status(401).json({ valid: false, error: 'Incorrect password' });
@@ -272,6 +276,20 @@ app.get('/api/health', (_req, res) => {
 async function startServer() {
   const isDev = process.env.NODE_ENV !== 'production';
 
+  if (!isDev && !ADMIN_PASSWORD) {
+    throw new Error('ADMIN_PASSWORD must be set in the production environment before the server can start.');
+  }
+
+  const distPath = path.resolve(__dirname, 'dist');
+  if (!isDev && !existsSync(path.join(distPath, 'index.html'))) {
+    throw new Error('Production frontend is missing. Run npm run build before npm start.');
+  }
+
+  // Return JSON for unknown API paths rather than serving the SPA HTML.
+  app.use('/api', (_req, res) => {
+    res.status(404).json({ error: 'API route not found' });
+  });
+
   // Explicit static route for local assets (/assets/food/*, /assets/aistudio/*)
   app.use('/assets', express.static(path.resolve(__dirname, 'public/assets'), {
     maxAge: '1d',
@@ -287,10 +305,11 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     // Production static serving
-    const distPath = path.resolve(__dirname, 'dist');
     app.use(express.static(distPath));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+    app.get('*', (_req, res, next) => {
+      res.sendFile(path.join(distPath, 'index.html'), (err) => {
+        if (err) next(err);
+      });
     });
   }
 

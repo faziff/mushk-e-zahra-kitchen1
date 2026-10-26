@@ -245,7 +245,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 Admin Authentication
               </h3>
               <p className="text-xs text-stone-500 mt-1">
-                Enter your password configured in .env (Default: admin123)
+                Enter the admin password configured in your hosting environment.
               </p>
             </div>
 
