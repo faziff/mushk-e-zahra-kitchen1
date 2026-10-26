@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-condensed: "Oswald", "Bebas Neue", sans-serif-condensed, sans-serif;
+  --font-script: "Marck Script", cursive;
+
+  --color-brand-maroon: #7A1030;
+  --color-brand-maroon-dark: #52081E;
+  --color-brand-maroon-light: #941B3E;
+  --color-brand-cream: #FBF3E4;
+  --color-brand-cream-soft: #FAF4E8;
+  --color-brand-cream-card: #FFFFFF;
+  --color-brand-cream-muted: #F2E4CB;
+  --color-brand-gold: #C8A15A;
+  --color-brand-gold-dark: #A57E32;
+  --color-brand-gold-light: #DFBF7C;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-family: var(--font-sans);
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-condensed {
+  font-family: var(--font-condensed);
+  letter-spacing: -0.02em;
+}
+
+.font-script {
+  font-family: var(--font-script);
+}
+
+/* Hide scrollbar for category tabs while retaining horizontal scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

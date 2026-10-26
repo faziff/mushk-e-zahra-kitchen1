@@ -1,0 +1,6 @@
+{
+  "name": "Mushk e Zahra Kitchen",
+  "description": "Authentic homemade food, signature kababs, rice kitchen, burgers, desi handi, and frozen delights crafted fresh with love.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
